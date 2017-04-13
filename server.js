@@ -1,24 +1,16 @@
-var express = require("express");
-var app     = express();
-var PORT    = process.env.PORT || 3000;
+var express     = require("express");
 
-var todos = [{
-    id : 1,
-    description : "NMX Site Table..",
-    complete : true
-},{
-    id : 2,
-    description : "Nargile İç",
-    complete : false
-},{
-    id : 3,
-    description : "Kungfuya git",
-    complete : false
-}];
+// route yazildiginda POST ile gelen JSON requestlerini parse edip almak için kullanabileceğimiz module..
+var bodyParser  = require("body-parser");
+var app         = express();
+var PORT        = process.env.PORT || 3000;
 
-app.get("/", function(req, res){
-    res.send("Todo API Root");
-})
+var todos = [];
+var todoNextId = 1;
+
+// JSON request geldiğinde express bunu bodyParser sayesinde alıp parse edebilir..
+// bunun için middleware ile yaptığımız gibi app.use() metodunu kullanıyoruz..
+app.use(bodyParser.json());
 
 // GET /todos
 app.get("/todos", function(req, res){
@@ -44,6 +36,21 @@ app.get("/todos/:id", function(req, res){
     }
 
     //res.send("Asking todo with id of " + req.params.id);
+})
+
+// POST /todos
+app.post("/todos", function(req, res){
+    //body ile gelen verileri almak için bodyParser kullanıyoruz..
+    var body = req.body;
+
+    body.id = todoNextId++;
+
+    todos.push(body);
+
+    console.log("Todo added " + body);
+
+    res.json(body);
+
 })
 
 app.listen(PORT, function(){
