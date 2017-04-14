@@ -5,6 +5,10 @@ var bodyParser  = require("body-parser");
 var app         = express();
 var PORT        = process.env.PORT || 3000;
 
+// underscore modülü array üzerinde istediğimiz gibi sorgulama gibi işlemleri yapmamıza olanak sağlar..
+// underscorejs.org üzerinden daha fazla bilgiye erişilebilinir..
+var _           = require("underscore");
+
 var todos = [];
 var todoNextId = 1;
 
@@ -20,13 +24,15 @@ app.get("/todos", function(req, res){
 // GET /todos/:id
 app.get("/todos/:id", function(req, res){
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo;
+    var matchedTodo = _.findWhere(todos, {id : todoId});
 
+/*
     todos.forEach(function(todo){
         if(todoId === todo.id){
             matchedTodo = todo;
         }
     });
+*/
 
     if(matchedTodo){
         res.json(matchedTodo);
