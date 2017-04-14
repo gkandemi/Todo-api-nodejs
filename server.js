@@ -49,6 +49,11 @@ app.post("/todos", function(req, res){
     //body ile gelen verileri almak için bodyParser kullanıyoruz..
     var body = req.body;
 
+    if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
+        // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
+        return res.status(400).send();
+    }
+
     body.id = todoNextId++;
 
     todos.push(body);
