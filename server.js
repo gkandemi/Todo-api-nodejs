@@ -39,6 +39,18 @@ app.get("/todos", function(req, res){
         filteredTodos = _.where(filteredTodos, {completed : false});
     }
 
+    // description alanına göre filter işlemi...
+    // filtrelemek için underscore' un içerisinde bulunan filter metodunu kullanıyoruz
+    // arama yapmak istediğimiz array' i filter içerisine parametre olarak aktardıktan sonra
+    // indexOf ile istediğimiz alanda arama yapiyoruz.
+    // aramalarsa case sensitive i ortadan kaldırmak için 
+    // toLowerCase() ile tüm alanlari küçük harfe çeviriyoruz..
+    if(queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0){
+        filteredTodos = _.filter(filteredTodos, function(todo){
+            return todo.description.toLowerCase().indexOf(queryParameters.q.toLowerCase()) > -1
+        });
+    }
+
     res.json(filteredTodos);
 })
 
