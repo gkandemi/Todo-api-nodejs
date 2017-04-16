@@ -47,7 +47,12 @@ app.get("/todos/:id", function(req, res){
 // POST /todos
 app.post("/todos", function(req, res){
     //body ile gelen verileri almak için bodyParser kullanıyoruz..
-    var body = req.body;
+
+    // underscore içerisindeki pick() metodunun amacı gelen object içerisindeki istenilen 
+    // alanları alıp yeni bir object oluşturmasıdır.
+    // bize post ile gelen JSON objesinde description ve completed haricinde bir alan istemediğimiz için
+    // pick() metoduyla diğer alanları eliyoruz..
+    var body = _.pick(req.body, "description", "completed");
 
     // Validation
     // Gelen istekteki verilerin boolean, string veya description alanında bir verinin yazıp yazmadığını kontrol ettik.
@@ -55,6 +60,8 @@ app.post("/todos", function(req, res){
         // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
         return res.status(400).send();
     }
+
+    body.description = body.description.trim();
 
     body.id = todoNextId++;
 
