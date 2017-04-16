@@ -18,7 +18,28 @@ app.use(bodyParser.json());
 
 // GET /todos
 app.get("/todos", function(req, res){
-    res.json(todos);
+
+
+    // URL den query alıp 
+    // Array içerisindeki objeleri sorgulamak istersek
+    // bunun için underscore içerisindeki where() metodundan faydalanabiliriz..
+
+    // URL' deki query yi almak için request ile gelen query property sini kullanabiliriz
+    // bu bize bir object döndürür..
+
+    var queryParameters = req.query;
+    var filteredTodos   = todos;
+
+    // Sorgulama yapabilmek için completed isimli alanın olup olmadığını kontrol ediyoruz..
+    if(queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true"){
+        // eğer completed varsa ve true ise bir object olusturup onu sorguluyoruz..
+        filteredTodos = _.where(filteredTodos, {completed : true});
+    }else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false"){
+        // eğer completed varsa ve false ise bir object olusturup onu sorguluyoruz..
+        filteredTodos = _.where(filteredTodos, {completed : false});
+    }
+
+    res.json(filteredTodos);
 })
 
 // GET /todos/:id
