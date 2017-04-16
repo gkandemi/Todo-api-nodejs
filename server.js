@@ -91,6 +91,45 @@ app.delete("/todos/:id", function(req, res){
 
 })
 
+// PUT /todos/:id
+
+app.put("/todos/:id", function(req, res){
+
+    var todoId = parseInt(req.params.id,10);
+    var matchedTodo = _.findWhere(todos, {id : todoId});
+
+    var body = _.pick(req.body, "description", "completed");
+    var validAttributes = {};
+
+    if(!matchedTodo){
+        return res.status(404).send();
+    }
+
+    // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean ise
+    // yeni değeri geçici olarak tutulan object içerisine aktar..
+    if(body.hasOwnProperty("completed") && _.isBoolean(body.completed)){
+        validAttributes.completed = body.completed;
+    }else if (body.hasOwnProperty("completed")){
+        // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
+        return res.status(400).send();
+    }
+
+    // Eğer description alanı JSON içerisinde gelmişse, türü string ve karakter uzunluğu 0 dan büyükse;
+    // yeni değeri geçici olarak tutulan object içerisine aktar..
+    if(body.hasOwnProperty("description") && _.isString(body.description) && body.description.trim().length > 0){
+        validAttributes.description = body.description;
+    }else if (body.hasOwnProperty("description")){
+        // Eğer description alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
+        return res.status(400).send();
+    }
+
+    // extend metodu ile bir object içerisindeki değeri değiştirebiliriz..
+     _.extend(matchedTodo, validAttributes);
+
+    res.json(matchedTodo);
+
+})
+
 app.listen(PORT, function(){
     console.log("Express listening on " + PORT + " !");
 })
