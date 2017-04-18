@@ -1,13 +1,17 @@
-var express     = require("express");
+var express = require("express");
 
 // route yazildiginda POST ile gelen JSON requestlerini parse edip almak için kullanabileceğimiz module..
-var bodyParser  = require("body-parser");
-var app         = express();
-var PORT        = process.env.PORT || 3000;
+var bodyParser = require("body-parser");
+var app = express();
+var PORT = process.env.PORT || 3000;
 
 // underscore modülü array üzerinde istediğimiz gibi sorgulama gibi işlemleri yapmamıza olanak sağlar..
 // underscorejs.org üzerinden daha fazla bilgiye erişilebilinir..
-var _           = require("underscore");
+var _ = require("underscore");
+
+/* ************* Database Bağlantısı ********** */
+var db = require("./db.js");
+/* ******************************************** */
 
 var todos = [];
 var todoNextId = 1;
@@ -17,7 +21,7 @@ var todoNextId = 1;
 app.use(bodyParser.json());
 
 // GET /todos
-app.get("/todos", function(req, res){
+app.get("/todos", function (req, res) {
 
 
     // URL den query alıp 
@@ -28,15 +32,15 @@ app.get("/todos", function(req, res){
     // bu bize bir object döndürür..
 
     var queryParameters = req.query;
-    var filteredTodos   = todos;
+    var filteredTodos = todos;
 
     // Sorgulama yapabilmek için completed isimli alanın olup olmadığını kontrol ediyoruz..
-    if(queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true"){
+    if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true") {
         // eğer completed varsa ve true ise bir object olusturup onu sorguluyoruz..
-        filteredTodos = _.where(filteredTodos, {completed : true});
-    }else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false"){
+        filteredTodos = _.where(filteredTodos, { completed: true });
+    } else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false") {
         // eğer completed varsa ve false ise bir object olusturup onu sorguluyoruz..
-        filteredTodos = _.where(filteredTodos, {completed : false});
+        filteredTodos = _.where(filteredTodos, { completed: false });
     }
 
     // description alanına göre filter işlemi...
@@ -45,8 +49,8 @@ app.get("/todos", function(req, res){
     // indexOf ile istediğimiz alanda arama yapiyoruz.
     // aramalarsa case sensitive i ortadan kaldırmak için 
     // toLowerCase() ile tüm alanlari küçük harfe çeviriyoruz..
-    if(queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0){
-        filteredTodos = _.filter(filteredTodos, function(todo){
+    if (queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0) {
+        filteredTodos = _.filter(filteredTodos, function (todo) {
             return todo.description.toLowerCase().indexOf(queryParameters.q.toLowerCase()) > -1
         });
     }
@@ -55,21 +59,21 @@ app.get("/todos", function(req, res){
 })
 
 // GET /todos/:id
-app.get("/todos/:id", function(req, res){
+app.get("/todos/:id", function (req, res) {
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, {id : todoId});
+    var matchedTodo = _.findWhere(todos, { id: todoId });
 
-/*
-    todos.forEach(function(todo){
-        if(todoId === todo.id){
-            matchedTodo = todo;
-        }
-    });
-*/
+    /*
+        todos.forEach(function(todo){
+            if(todoId === todo.id){
+                matchedTodo = todo;
+            }
+        });
+    */
 
-    if(matchedTodo){
+    if (matchedTodo) {
         res.json(matchedTodo);
-    }else{
+    } else {
         // Eğer herhangi bir kayıt bulunamazsa 404 durumunu gönder..
         res.status(404).send();
     }
@@ -78,7 +82,7 @@ app.get("/todos/:id", function(req, res){
 })
 
 // POST /todos
-app.post("/todos", function(req, res){
+app.post("/todos", function (req, res) {
     //body ile gelen verileri almak için bodyParser kullanıyoruz..
 
     // underscore içerisindeki pick() metodunun amacı gelen object içerisindeki istenilen 
@@ -87,9 +91,23 @@ app.post("/todos", function(req, res){
     // pick() metoduyla diğer alanları eliyoruz..
     var body = _.pick(req.body, "description", "completed");
 
+    // DB Bağlantılı...
+
+    db.todo.create(body).then(function(todo){
+        return res.json(todo.toJSON());
+    }, function(e){
+        return res.status(400).json(e.toJSON());
+    })
+
+    // Local Variable...
+
+
     // Validation
     // Gelen istekteki verilerin boolean, string veya description alanında bir verinin yazıp yazmadığını kontrol ettik.
-    if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
+
+/*
+
+    if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
         // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
         return res.status(400).send();
     }
@@ -103,66 +121,71 @@ app.post("/todos", function(req, res){
     console.log("Todo added " + body);
 
     res.json(body);
+*/
 
 })
 
 // DELETE /todos/:id
 
-app.delete("/todos/:id", function(req, res){
+app.delete("/todos/:id", function (req, res) {
 
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, {id : todoId});
+    var matchedTodo = _.findWhere(todos, { id: todoId });
 
-    if(matchedTodo){
+    if (matchedTodo) {
         todos = _.without(todos, matchedTodo);
         console.log("Silme işlemi başarılıdır!!");
         res.json(matchedTodo);
-    }else{
+    } else {
         //return res.status(404).send();
-        return res.status(404).json({"error" : "no matched record!!"});
+        return res.status(404).json({ "error": "no matched record!!" });
     }
 
 })
 
 // PUT /todos/:id
 
-app.put("/todos/:id", function(req, res){
+app.put("/todos/:id", function (req, res) {
 
-    var todoId = parseInt(req.params.id,10);
-    var matchedTodo = _.findWhere(todos, {id : todoId});
+    var todoId = parseInt(req.params.id, 10);
+    var matchedTodo = _.findWhere(todos, { id: todoId });
 
     var body = _.pick(req.body, "description", "completed");
     var validAttributes = {};
 
-    if(!matchedTodo){
+    if (!matchedTodo) {
         return res.status(404).send();
     }
 
     // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean ise
     // yeni değeri geçici olarak tutulan object içerisine aktar..
-    if(body.hasOwnProperty("completed") && _.isBoolean(body.completed)){
+    if (body.hasOwnProperty("completed") && _.isBoolean(body.completed)) {
         validAttributes.completed = body.completed;
-    }else if (body.hasOwnProperty("completed")){
+    } else if (body.hasOwnProperty("completed")) {
         // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
         return res.status(400).send();
     }
 
     // Eğer description alanı JSON içerisinde gelmişse, türü string ve karakter uzunluğu 0 dan büyükse;
     // yeni değeri geçici olarak tutulan object içerisine aktar..
-    if(body.hasOwnProperty("description") && _.isString(body.description) && body.description.trim().length > 0){
+    if (body.hasOwnProperty("description") && _.isString(body.description) && body.description.trim().length > 0) {
         validAttributes.description = body.description;
-    }else if (body.hasOwnProperty("description")){
+    } else if (body.hasOwnProperty("description")) {
         // Eğer description alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
         return res.status(400).send();
     }
 
     // extend metodu ile bir object içerisindeki değeri değiştirebiliriz..
-     _.extend(matchedTodo, validAttributes);
+    _.extend(matchedTodo, validAttributes);
 
     res.json(matchedTodo);
 
 })
 
-app.listen(PORT, function(){
-    console.log("Express listening on " + PORT + " !");
+db.sequelize.sync().then(function () {
+    console.log("Everything is synced");
+    app.listen(PORT, function () {
+        console.log("Express listening on " + PORT + " !");
+    })
 })
+
