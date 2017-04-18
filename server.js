@@ -61,8 +61,26 @@ app.get("/todos", function (req, res) {
 // GET /todos/:id
 app.get("/todos/:id", function (req, res) {
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, { id: todoId });
+    
+    // DB Bağlantılı...
 
+    db.todo.findById(todoId).then(function(todo){
+        if(todo){
+            return res.json(todo.toJSON());
+        }else{
+            return res.status(404).send();
+        }
+        
+    }, function(e){
+        // Eğer server ile ilgili bir problem olursa 500 kodu geri döndür..
+        return res.status(500).send();
+    });
+
+    // Local Variable
+
+//    var matchedTodo = _.findWhere(todos, { id: todoId });
+
+    // Brutal Metod...
     /*
         todos.forEach(function(todo){
             if(todoId === todo.id){
@@ -70,14 +88,14 @@ app.get("/todos/:id", function (req, res) {
             }
         });
     */
-
+/*
     if (matchedTodo) {
         res.json(matchedTodo);
     } else {
         // Eğer herhangi bir kayıt bulunamazsa 404 durumunu gönder..
         res.status(404).send();
     }
-
+*/
     //res.send("Asking todo with id of " + req.params.id);
 })
 
