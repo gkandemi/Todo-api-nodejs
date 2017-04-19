@@ -11,7 +11,7 @@ if (env === "production") {
         dialect: 'postgres',
     });
 } else {
-    sequelize = new new Sequelize(undefined, undefined, undefined, {
+    sequelize = new Sequelize(undefined, undefined, undefined, {
         'dialect': 'sqlite',
         'storage': __dirname + '/data/dev-todo-api.sqlite'
     });

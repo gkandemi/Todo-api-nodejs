@@ -43,7 +43,7 @@ app.get("/todos", function (req, res) {
 
     db.todo.findAll({ where: where }).then(function (todos) {
         res.json(todos);
-    }, function () { 
+    }, function () {
         res.status(500).send();
     })
 
@@ -55,32 +55,32 @@ app.get("/todos", function (req, res) {
 
     // URL' deki query yi almak için request ile gelen query property sini kullanabiliriz
     // bu bize bir object döndürür..
-/*
-    var queryParameters = req.query;
-    var filteredTodos = todos;
-
-    // Sorgulama yapabilmek için completed isimli alanın olup olmadığını kontrol ediyoruz..
-    if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true") {
-        // eğer completed varsa ve true ise bir object olusturup onu sorguluyoruz..
-        filteredTodos = _.where(filteredTodos, { completed: true });
-    } else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false") {
-        // eğer completed varsa ve false ise bir object olusturup onu sorguluyoruz..
-        filteredTodos = _.where(filteredTodos, { completed: false });
-    }
-
-    // description alanına göre filter işlemi...
-    // filtrelemek için underscore' un içerisinde bulunan filter metodunu kullanıyoruz
-    // arama yapmak istediğimiz array' i filter içerisine parametre olarak aktardıktan sonra
-    // indexOf ile istediğimiz alanda arama yapiyoruz.
-    // aramalarsa case sensitive i ortadan kaldırmak için 
-    // toLowerCase() ile tüm alanlari küçük harfe çeviriyoruz..
-    if (queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0) {
-        filteredTodos = _.filter(filteredTodos, function (todo) {
-            return todo.description.toLowerCase().indexOf(queryParameters.q.toLowerCase()) > -1
-        });
-    }
-
-    res.json(filteredTodos); */
+    /*
+        var queryParameters = req.query;
+        var filteredTodos = todos;
+    
+        // Sorgulama yapabilmek için completed isimli alanın olup olmadığını kontrol ediyoruz..
+        if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true") {
+            // eğer completed varsa ve true ise bir object olusturup onu sorguluyoruz..
+            filteredTodos = _.where(filteredTodos, { completed: true });
+        } else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false") {
+            // eğer completed varsa ve false ise bir object olusturup onu sorguluyoruz..
+            filteredTodos = _.where(filteredTodos, { completed: false });
+        }
+    
+        // description alanına göre filter işlemi...
+        // filtrelemek için underscore' un içerisinde bulunan filter metodunu kullanıyoruz
+        // arama yapmak istediğimiz array' i filter içerisine parametre olarak aktardıktan sonra
+        // indexOf ile istediğimiz alanda arama yapiyoruz.
+        // aramalarsa case sensitive i ortadan kaldırmak için 
+        // toLowerCase() ile tüm alanlari küçük harfe çeviriyoruz..
+        if (queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0) {
+            filteredTodos = _.filter(filteredTodos, function (todo) {
+                return todo.description.toLowerCase().indexOf(queryParameters.q.toLowerCase()) > -1
+            });
+        }
+    
+        res.json(filteredTodos); */
 })
 
 // GET /todos/:id
@@ -173,6 +173,31 @@ app.post("/todos", function (req, res) {
 app.delete("/todos/:id", function (req, res) {
 
     var todoId = parseInt(req.params.id, 10);
+
+    // Database Bağlantısı...
+
+    db.todo.destroy({
+        where : {
+            id : todoId
+        }
+    }).then(function(rowDeleted){
+        if(rowDeleted === 0){
+            return res.status(404).json({
+                error : "id doesn't exists"
+            });
+        }else{
+            // 204 kodu herşey doğru gitti ve geri döndürülecek bir veri yok..
+            // sil için kullanilabilecek response kodu.
+            return res.status(204).send();
+        }
+        
+    }, function(){
+        return res.status(500).send();
+    })
+
+/*
+    Local Variable...
+
     var matchedTodo = _.findWhere(todos, { id: todoId });
 
     if (matchedTodo) {
@@ -183,7 +208,7 @@ app.delete("/todos/:id", function (req, res) {
         //return res.status(404).send();
         return res.status(404).json({ "error": "no matched record!!" });
     }
-
+*/ 
 })
 
 // PUT /todos/:id
