@@ -20,7 +20,8 @@ if (env === "production") {
 var db = {};
 
 // modeli sequelize ye yüklemek için sequelize.import fonksiyonunu kullaniyoruz..
-db.todo = sequelize.import(__dirname + "/models/todo.js");
+db.todo  = sequelize.import(__dirname + "/models/todo.js");
+db.users = sequelize.import(__dirname + "/models/user.js")
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

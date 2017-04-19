@@ -242,6 +242,22 @@ app.put("/todos/:id", function (req, res) {
     })
 })
 
+// POST /users/
+app.post("/users", function (req, res) {
+
+    var body = _.pick(req.body, "email", "password");
+
+    db.users.create(body).then(function(user){
+        res.json(user.toJSON());
+    }, function(e){
+        // res.status(400).send(e.toJSON());
+        res.status(400).json(e);
+        // ikside aynı işlemi yapıyor..
+        // verilerde bir problem olduğunda 400 kodu geri dondurulebilir..
+    })
+
+})
+
 db.sequelize.sync().then(function () {
     console.log("Everything is synced");
     app.listen(PORT, function () {
