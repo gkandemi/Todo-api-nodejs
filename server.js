@@ -177,38 +177,38 @@ app.delete("/todos/:id", function (req, res) {
     // Database Bağlantısı...
 
     db.todo.destroy({
-        where : {
-            id : todoId
+        where: {
+            id: todoId
         }
-    }).then(function(rowDeleted){
-        if(rowDeleted === 0){
+    }).then(function (rowDeleted) {
+        if (rowDeleted === 0) {
             return res.status(404).json({
-                error : "id doesn't exists"
+                error: "id doesn't exists"
             });
-        }else{
+        } else {
             // 204 kodu herşey doğru gitti ve geri döndürülecek bir veri yok..
             // sil için kullanilabilecek response kodu.
             return res.status(204).send();
         }
-        
-    }, function(){
+
+    }, function () {
         return res.status(500).send();
     })
 
-/*
-    Local Variable...
-
-    var matchedTodo = _.findWhere(todos, { id: todoId });
-
-    if (matchedTodo) {
-        todos = _.without(todos, matchedTodo);
-        console.log("Silme işlemi başarılıdır!!");
-        res.json(matchedTodo);
-    } else {
-        //return res.status(404).send();
-        return res.status(404).json({ "error": "no matched record!!" });
-    }
-*/ 
+    /*
+        Local Variable...
+    
+        var matchedTodo = _.findWhere(todos, { id: todoId });
+    
+        if (matchedTodo) {
+            todos = _.without(todos, matchedTodo);
+            console.log("Silme işlemi başarılıdır!!");
+            res.json(matchedTodo);
+        } else {
+            //return res.status(404).send();
+            return res.status(404).json({ "error": "no matched record!!" });
+        }
+    */
 })
 
 // PUT /todos/:id
@@ -216,38 +216,30 @@ app.delete("/todos/:id", function (req, res) {
 app.put("/todos/:id", function (req, res) {
 
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, { id: todoId });
-
     var body = _.pick(req.body, "description", "completed");
-    var validAttributes = {};
+    var attributes = {};
 
-    if (!matchedTodo) {
-        return res.status(404).send();
+    if (body.hasOwnProperty("completed")) {
+        attributes.completed = body.completed;
     }
 
-    // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean ise
-    // yeni değeri geçici olarak tutulan object içerisine aktar..
-    if (body.hasOwnProperty("completed") && _.isBoolean(body.completed)) {
-        validAttributes.completed = body.completed;
-    } else if (body.hasOwnProperty("completed")) {
-        // Eğer completed alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
-        return res.status(400).send();
+    if (body.hasOwnProperty("description")) {
+        attributes.description = body.description;
     }
 
-    // Eğer description alanı JSON içerisinde gelmişse, türü string ve karakter uzunluğu 0 dan büyükse;
-    // yeni değeri geçici olarak tutulan object içerisine aktar..
-    if (body.hasOwnProperty("description") && _.isString(body.description) && body.description.trim().length > 0) {
-        validAttributes.description = body.description;
-    } else if (body.hasOwnProperty("description")) {
-        // Eğer description alanı JSON içerisinde gelmişse ve türü boolean değilse hata göster...
-        return res.status(400).send();
-    }
-
-    // extend metodu ile bir object içerisindeki değeri değiştirebiliriz..
-    _.extend(matchedTodo, validAttributes);
-
-    res.json(matchedTodo);
-
+    db.todo.findById(todoId).then(function (todo) {
+        if (todo) {
+            todo.update(attributes).then(function (todo) {
+                res.json(todo.toJSON());
+            }, function (e) {
+                res.status(400).json(e);
+            })
+        } else {
+            res.status(404).send();
+        }
+    }, function () {
+        res.status(500).send();
+    })
 })
 
 db.sequelize.sync().then(function () {
