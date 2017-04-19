@@ -23,6 +23,31 @@ app.use(bodyParser.json());
 // GET /todos
 app.get("/todos", function (req, res) {
 
+    // Database Bağlantılı....
+
+    var query = req.query;
+    var where = {};
+
+
+    if (query.hasOwnProperty("completed") && query.completed == "true") {
+        where.completed = true;
+    } else if (query.hasOwnProperty("completed") && query.completed == "false") {
+        where.completed = false;
+    }
+
+    if (query.hasOwnProperty("q") && query.q.trim().length > 0) {
+        where.description = {
+            $like: '%' + query.q + '%'
+        }
+    }
+
+    db.todo.findAll({ where: where }).then(function (todos) {
+        res.json(todos);
+    }, function () { 
+        res.status(500).send();
+    })
+
+    // Local Variable...
 
     // URL den query alıp 
     // Array içerisindeki objeleri sorgulamak istersek
@@ -30,7 +55,7 @@ app.get("/todos", function (req, res) {
 
     // URL' deki query yi almak için request ile gelen query property sini kullanabiliriz
     // bu bize bir object döndürür..
-
+/*
     var queryParameters = req.query;
     var filteredTodos = todos;
 
@@ -55,30 +80,30 @@ app.get("/todos", function (req, res) {
         });
     }
 
-    res.json(filteredTodos);
+    res.json(filteredTodos); */
 })
 
 // GET /todos/:id
 app.get("/todos/:id", function (req, res) {
     var todoId = parseInt(req.params.id, 10);
-    
+
     // DB Bağlantılı...
 
-    db.todo.findById(todoId).then(function(todo){
-        if(todo){
+    db.todo.findById(todoId).then(function (todo) {
+        if (todo) {
             return res.json(todo.toJSON());
-        }else{
+        } else {
             return res.status(404).send();
         }
-        
-    }, function(e){
+
+    }, function (e) {
         // Eğer server ile ilgili bir problem olursa 500 kodu geri döndür..
         return res.status(500).send();
     });
 
     // Local Variable
 
-//    var matchedTodo = _.findWhere(todos, { id: todoId });
+    //    var matchedTodo = _.findWhere(todos, { id: todoId });
 
     // Brutal Metod...
     /*
@@ -88,14 +113,14 @@ app.get("/todos/:id", function (req, res) {
             }
         });
     */
-/*
-    if (matchedTodo) {
-        res.json(matchedTodo);
-    } else {
-        // Eğer herhangi bir kayıt bulunamazsa 404 durumunu gönder..
-        res.status(404).send();
-    }
-*/
+    /*
+        if (matchedTodo) {
+            res.json(matchedTodo);
+        } else {
+            // Eğer herhangi bir kayıt bulunamazsa 404 durumunu gönder..
+            res.status(404).send();
+        }
+    */
     //res.send("Asking todo with id of " + req.params.id);
 })
 
@@ -111,9 +136,9 @@ app.post("/todos", function (req, res) {
 
     // DB Bağlantılı...
 
-    db.todo.create(body).then(function(todo){
+    db.todo.create(body).then(function (todo) {
         return res.json(todo.toJSON());
-    }, function(e){
+    }, function (e) {
         return res.status(400).json(e.toJSON());
     })
 
@@ -123,23 +148,23 @@ app.post("/todos", function (req, res) {
     // Validation
     // Gelen istekteki verilerin boolean, string veya description alanında bir verinin yazıp yazmadığını kontrol ettik.
 
-/*
-
-    if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-        // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
-        return res.status(400).send();
-    }
-
-    body.description = body.description.trim();
-
-    body.id = todoNextId++;
-
-    todos.push(body);
-
-    console.log("Todo added " + body);
-
-    res.json(body);
-*/
+    /*
+    
+        if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+            // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
+            return res.status(400).send();
+        }
+    
+        body.description = body.description.trim();
+    
+        body.id = todoNextId++;
+    
+        todos.push(body);
+    
+        console.log("Todo added " + body);
+    
+        res.json(body);
+    */
 
 })
 
