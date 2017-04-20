@@ -48,41 +48,6 @@ app.get("/todos", function (req, res) {
     }, function () {
         res.status(500).send();
     })
-
-    // Local Variable...
-
-    // URL den query alıp 
-    // Array içerisindeki objeleri sorgulamak istersek
-    // bunun için underscore içerisindeki where() metodundan faydalanabiliriz..
-
-    // URL' deki query yi almak için request ile gelen query property sini kullanabiliriz
-    // bu bize bir object döndürür..
-    /*
-        var queryParameters = req.query;
-        var filteredTodos = todos;
-    
-        // Sorgulama yapabilmek için completed isimli alanın olup olmadığını kontrol ediyoruz..
-        if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "true") {
-            // eğer completed varsa ve true ise bir object olusturup onu sorguluyoruz..
-            filteredTodos = _.where(filteredTodos, { completed: true });
-        } else if (queryParameters.hasOwnProperty("completed") && queryParameters.completed === "false") {
-            // eğer completed varsa ve false ise bir object olusturup onu sorguluyoruz..
-            filteredTodos = _.where(filteredTodos, { completed: false });
-        }
-    
-        // description alanına göre filter işlemi...
-        // filtrelemek için underscore' un içerisinde bulunan filter metodunu kullanıyoruz
-        // arama yapmak istediğimiz array' i filter içerisine parametre olarak aktardıktan sonra
-        // indexOf ile istediğimiz alanda arama yapiyoruz.
-        // aramalarsa case sensitive i ortadan kaldırmak için 
-        // toLowerCase() ile tüm alanlari küçük harfe çeviriyoruz..
-        if (queryParameters.hasOwnProperty("q") && queryParameters.q.trim().length > 0) {
-            filteredTodos = _.filter(filteredTodos, function (todo) {
-                return todo.description.toLowerCase().indexOf(queryParameters.q.toLowerCase()) > -1
-            });
-        }
-    
-        res.json(filteredTodos); */
 })
 
 // GET /todos/:id
@@ -102,28 +67,6 @@ app.get("/todos/:id", function (req, res) {
         // Eğer server ile ilgili bir problem olursa 500 kodu geri döndür..
         return res.status(500).send();
     });
-
-    // Local Variable
-
-    //    var matchedTodo = _.findWhere(todos, { id: todoId });
-
-    // Brutal Metod...
-    /*
-        todos.forEach(function(todo){
-            if(todoId === todo.id){
-                matchedTodo = todo;
-            }
-        });
-    */
-    /*
-        if (matchedTodo) {
-            res.json(matchedTodo);
-        } else {
-            // Eğer herhangi bir kayıt bulunamazsa 404 durumunu gönder..
-            res.status(404).send();
-        }
-    */
-    //res.send("Asking todo with id of " + req.params.id);
 })
 
 // POST /todos
@@ -143,31 +86,6 @@ app.post("/todos", function (req, res) {
     }, function (e) {
         return res.status(400).json(e.toJSON());
     })
-
-    // Local Variable...
-
-
-    // Validation
-    // Gelen istekteki verilerin boolean, string veya description alanında bir verinin yazıp yazmadığını kontrol ettik.
-
-    /*
-    
-        if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-            // 400 kodu anlamı : İstenilen veriler sağlanmadığı için 400 kodu ile geri döndürüyoruz cevabı..
-            return res.status(400).send();
-        }
-    
-        body.description = body.description.trim();
-    
-        body.id = todoNextId++;
-    
-        todos.push(body);
-    
-        console.log("Todo added " + body);
-    
-        res.json(body);
-    */
-
 })
 
 // DELETE /todos/:id
@@ -196,21 +114,6 @@ app.delete("/todos/:id", function (req, res) {
     }, function () {
         return res.status(500).send();
     })
-
-    /*
-        Local Variable...
-    
-        var matchedTodo = _.findWhere(todos, { id: todoId });
-    
-        if (matchedTodo) {
-            todos = _.without(todos, matchedTodo);
-            console.log("Silme işlemi başarılıdır!!");
-            res.json(matchedTodo);
-        } else {
-            //return res.status(404).send();
-            return res.status(404).json({ "error": "no matched record!!" });
-        }
-    */
 })
 
 // PUT /todos/:id
@@ -249,7 +152,7 @@ app.post("/users", function (req, res) {
 
     var body = _.pick(req.body, "email", "password");
 
-    db.users.create(body).then(function (user) {
+    db.user.create(body).then(function (user) {
         res.json(user.toPublicJSON());
     }, function (e) {
         // res.status(400).send(e.toJSON());
@@ -266,29 +169,14 @@ app.post("/users/login", function (req, res) {
 
     var body = _.pick(req.body, "email", "password");
 
-    if (typeof body.email !== 'string' || typeof body.password !== 'string') {
-        // Bad Request
-        return res.status(400).send();
-    }
-
-    db.users.findOne({
-        where: {
-            email: body.email
-        }
-    }).then(function (user) {
-        if (!user || !bcrypt.compareSync(body.password, user.get("password_hash"))) {
-            // route var fakat auth. olamadi...
-            return res.status(401).send();
-        }
-
+    db.user.authenticate(body).then(function (user) {
         res.json(user.toPublicJSON());
     }, function () {
-        // Internal Server Error
-        res.status(500).send();
+        res.status(401).send();
     })
 })
 
-db.sequelize.sync().then(function () {
+db.sequelize.sync({force : true}).then(function () {
     console.log("Everything is synced");
     app.listen(PORT, function () {
         console.log("Express listening on " + PORT + " !");
