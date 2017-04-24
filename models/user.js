@@ -77,6 +77,37 @@ module.exports = function (sequelize, DataTypes) {
 
 
                     })
+                },
+                findByToken: function (token) {
+                    return new Promise(function (resolve, reject) {
+
+                        try {
+
+                            // JWT den token in geri cevrilmesi...
+                            var decodedJWT = jwt.verify(token, "qwerty098");
+                            var bytes = cryptojs.AES.decrypt(decodedJWT.token, "abs!@#!");
+                            var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+
+                            // tokenData icerisinde 2 tane attribute saklamaktadir.
+                            // id
+                            // type
+                            // id den yola cikarak veri tabanından user elde edebiliriz.
+
+                            user.findById(tokenData.id).then(function (user) {
+                                if (user) {
+                                    resolve(user);
+                                } else {
+                                    reject();
+                                }
+                            }, function () {
+                                reject();
+                            })
+
+                        } catch (e) {
+                            reject();
+                        }
+
+                    })
                 }
             },
             instanceMethods: {

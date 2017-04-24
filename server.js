@@ -2,6 +2,7 @@ var express = require("express");
 
 // Şifreleme için kullanilan module
 var bcrypt = require("bcrypt");
+
 // route yazildiginda POST ile gelen JSON requestlerini parse edip almak için kullanabileceğimiz module..
 var bodyParser = require("body-parser");
 var app = express();
@@ -15,15 +16,15 @@ var _ = require("underscore");
 var db = require("./db.js");
 /* ******************************************** */
 
-var todos = [];
-var todoNextId = 1;
+// kendi yazmış olduğumuz middleware içerisine db objesini alıyor...
+var middleware = require("./middleware")(db);
 
 // JSON request geldiğinde express bunu bodyParser sayesinde alıp parse edebilir..
 // bunun için middleware ile yaptığımız gibi app.use() metodunu kullanıyoruz..
 app.use(bodyParser.json());
 
 // GET /todos
-app.get("/todos", function (req, res) {
+app.get("/todos", middleware.requireAuthentication, function (req, res) {
 
     // Database Bağlantılı....
 
@@ -51,7 +52,7 @@ app.get("/todos", function (req, res) {
 })
 
 // GET /todos/:id
-app.get("/todos/:id", function (req, res) {
+app.get("/todos/:id", middleware.requireAuthentication, function (req, res) {
     var todoId = parseInt(req.params.id, 10);
 
     // DB Bağlantılı...
@@ -70,7 +71,7 @@ app.get("/todos/:id", function (req, res) {
 })
 
 // POST /todos
-app.post("/todos", function (req, res) {
+app.post("/todos", middleware.requireAuthentication, function (req, res) {
     //body ile gelen verileri almak için bodyParser kullanıyoruz..
 
     // underscore içerisindeki pick() metodunun amacı gelen object içerisindeki istenilen 
@@ -90,7 +91,7 @@ app.post("/todos", function (req, res) {
 
 // DELETE /todos/:id
 
-app.delete("/todos/:id", function (req, res) {
+app.delete("/todos/:id", middleware.requireAuthentication, function (req, res) {
 
     var todoId = parseInt(req.params.id, 10);
 
@@ -118,7 +119,7 @@ app.delete("/todos/:id", function (req, res) {
 
 // PUT /todos/:id
 
-app.put("/todos/:id", function (req, res) {
+app.put("/todos/:id", middleware.requireAuthentication, function (req, res) {
 
     var todoId = parseInt(req.params.id, 10);
     var body = _.pick(req.body, "description", "completed");
@@ -188,4 +189,3 @@ db.sequelize.sync({ force: true }).then(function () {
         console.log("Express listening on " + PORT + " !");
     })
 })
-
