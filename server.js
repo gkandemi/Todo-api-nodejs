@@ -83,7 +83,13 @@ app.post("/todos", middleware.requireAuthentication, function (req, res) {
     // DB Bağlantılı...
 
     db.todo.create(body).then(function (todo) {
-        return res.json(todo.toJSON());
+
+        req.user.addTodo(todo).then(function () {
+            return todo.reload();
+        }).then(function (todo) {
+            res.json(todo.toJSON());
+        })
+
     }, function (e) {
         return res.status(400).json(e.toJSON());
     })
@@ -174,7 +180,7 @@ app.post("/users/login", function (req, res) {
         var token = user.generateToken("authentication");
         if (token) {
             res.header("Auth", token).json(user.toPublicJSON());
-        }else{
+        } else {
             res.status(401).send();
         }
 

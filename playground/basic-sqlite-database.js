@@ -22,14 +22,62 @@ var Todo = sequelize.define('todo', {
     }
 });
 
+var User = sequelize.define("user", {
+    email : Sequelize.STRING,
+});
+
+
+
+// foreign key olusturma...
+Todo.belongsTo(User);
+User.hasMany(Todo);
+
 
 sequelize.sync({
-    // force: true // 
+     // force: true
     // force egeer true olursa her defasında tabloyu siler ve yeniden olusturur
     // eger false olursa bir kere olusturur ve daha sonra varolan tablo üzerinden işlem yapar.
     // default => force: false 
 }).then(function(){
     console.log("Everything is synced");
+
+
+    // iki tablo arasındaki ilişkili verileri listelemek için;
+
+    // getTodos() metodu kullanılıyor.. getMetotAdi seklinde bir metot 
+    // Sequelize tarafindan olusturuluyor..
+
+    User.findById(1).then(function(user){
+        user.getTodos({
+            where :{
+                completed: false
+            }
+        }).then(function(todos){
+
+            todos.forEach(function(todo){
+                console.log(todo.toJSON());
+            })
+
+        })
+    })
+
+/*
+    // ilişkili kayıt oluşturma..
+
+    User.create({
+        email : "gokhan@gkandemir.com"
+    }).then(function(){
+        return Todo.create({
+            description : "clean yard"
+        })
+    }).then(function(todo){
+        User.findById(1).then(function(user){
+
+            // addModelAdı şeklinde metot oluşturuyor Sequelize.. Todo model adimiz olduğu için 
+            // addTodo şeklinde metodumuz oluşmuş oldu..
+            user.addTodo(todo);
+        })
+    })
 
     Todo.findById(1).then(function(todo){
 
@@ -40,7 +88,7 @@ sequelize.sync({
         }
         
     })
-
+*/
 /*
     Todo.create({
         description : "Şirkete git",
