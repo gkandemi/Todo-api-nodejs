@@ -21,7 +21,8 @@ var db = {};
 
 // modeli sequelize ye yüklemek için sequelize.import fonksiyonunu kullaniyoruz..
 db.todo  = sequelize.import(__dirname + "/models/todo.js");
-db.user = sequelize.import(__dirname + "/models/user.js")
+db.user  = sequelize.import(__dirname + "/models/user.js")
+db.token = sequelize.import(__dirname + "/models/token.js")
 
 // Making Many to many relationship by sequelize...
 db.todo.belongsTo(db.user);
